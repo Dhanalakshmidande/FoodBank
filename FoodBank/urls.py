@@ -6,10 +6,13 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('restaurants.urls')),
-    path('accounts/', include('accounts.urls')),
-    path('paypal/',include('paypal.standard.ipn.urls'))
+    path('auth/', include('authentication.urls')),
 
 ]
+
+handler404 = "helpers.views.handle_not_found"
+handler500 = "helpers.views.handle_server_error"
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

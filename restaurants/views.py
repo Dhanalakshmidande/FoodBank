@@ -1,17 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .forms import RestaurantCreateForm,CartForm
+from .forms import RestaurantCreateForm
 from django.utils.decorators import method_decorator
 from django.urls import reverse_lazy
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-from .models import Restaurant, Comment,Cart,Product
+from .models import Restaurant, Comment
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib import messages
-from paypal.standard.forms import PayPalPaymentsForm
-import uuid
 
 
 class RestaurantListView(ListView):
@@ -31,7 +28,7 @@ class RestaurantListView(ListView):
             ).distinct()
         if cat:
             queryset = queryset.filter(categories__icontains=cat)
- 
+
         if author:
             queryset = queryset.filter(user__username=author)
         return queryset
@@ -65,7 +62,7 @@ class RestaurantDetailView(DetailView):
                 comment.save()
                 return redirect('detail', c_slug)
         return redirect('detail', c_slug)
-               
+
 
 class RestaurantCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     template_name = 'restaurants/restaurant_form.html'
@@ -106,42 +103,3 @@ class MyPostView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         return Restaurant.objects.filter(user=self.request.user)
-
-def cart_view(request):
-    if request.method == 'POST' and request.POST.get('delete') == 'Delete':
-        item_id = request.POST.get('item_id')
-        cd=Cart.objects.get(id = item_id)
-        cd.delete()
-    c = get_cart(request)
-    t = total_(request)
-    co = item_count(request)
-    context = {'c':c ,'t':t }
-    return render(request,'cart.html',context)
-
-def checkout(request):
-    items=get_cart(request)
-    for i in items:
-        b = Buy(product_id = i.product_id,quantity=i.quantity,price=i.price)
-        b.save()
-    
-        paypal_dict={
-            "business":"sb-viewu1733160@business.example.com",
-            "amount":total_(request),
-            "item_name":cart_id_(request),
-            "invoice":str(uuid.uuid4()),
-            "notify_url":request.build_absoluite_uri(reverse('paypal-pin')),
-            "return":request.build_absolute_uri(reverse('return_view')),
-            "cancel_return":request.build_absolute_uri(reverse('cancel_view')),
-            "custom":"premium_plan",
-            
-        }
-        #create the instance.
-        form = PayPalPaymentsForm(initial=paypal_dict)
-        context ={"form": form}
-        return render(request, "checkout.html",context)
-
-def return_view(request):
-        return HttpResponse('Transaction Successful')
-
-def cancel_view(request):
-        return HttpResponse('Transaction Cancelled !')

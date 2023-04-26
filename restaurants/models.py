@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from authentication.models import User
 from .snippets import generate_unique_slug, choices
 from django.utils.text import slugify
 
@@ -53,28 +53,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text[:100]
-
-class Product(models.Model):
-    title=models.CharField(max_length=100)
-    description=models.TextField()
-    slug=models.SlugField()
-    price=models.DecimalField(max_digits=10,decimal_places=2)
-    img=models.ImageField(upload_to = '')
-    
-    def __str__(self):
-        return self.title
-
-class Cart(models.Model):
-    cart_id=models.CharField(max_length=50)
-    price=models.DecimalField(max_digits=10,decimal_places=2)
-    quantity=models.IntegerField()
-    timestamp=models.DateTimeField(auto_now=True)
-    product=models.ForeignKey(Product,on_delete=models.PROTECT)
-
-    def __str__(self):
-        return self.product.title
-    def update_quantity(self,quantity):
-        self.quantity+=quantity
-        self.save()
-    def total(self):
-        return self.quantity*self.price

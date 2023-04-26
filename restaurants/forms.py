@@ -1,5 +1,5 @@
 from django import forms
-from .models import Restaurant,Comment,Cart,Product
+from .models import Restaurant,Comment
 from .snippets import choices
 
 class RestaurantCreateForm(forms.ModelForm):
@@ -19,12 +19,3 @@ class RestaurantCreateForm(forms.ModelForm):
     class Meta:
         model = Restaurant
         fields = ['title','image','categories','location','price','vat','taste','persons','details']
-
-
-class CartForm(forms.Form):
-    quantity=forms.IntegerField(initial= '1')
-    product_id=forms.IntegerField(widget = forms.HiddenInput)
-
-    def __init__(self,request,*args,**kwargs):
-        self.request=request
-        super(CartForm,self).__init__(*args,**kwargs)
